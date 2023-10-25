@@ -9,7 +9,6 @@ add_executable(frontend  ${SRCS})
 # Your-external "mylib", add GLOBAL if the imported library is located in directories above the current.
 add_library(myblake3 SHARED IMPORTED GLOBAL)
 # You can define two import-locations: one for debug and one for release.
-# set_target_properties(myblake3 PROPERTIES IMPORTED_LOCATION /home/lx1234/work/volepsi/out/install/linux/lib/libblake3.so)
 set_target_properties(myblake3 PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/out/install/linux/lib/libblake3.so)
 
 target_link_libraries(frontend volePSI_Tests myblake3)

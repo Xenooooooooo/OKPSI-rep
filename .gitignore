@@ -1,9 +1,12 @@
 .vs/
 .vscode/
 out/build/
-out/install/linux/*
+out/install/linux/LICENSE.txt
+out/install/linux/Readme.md
+out/install/linux/include/*
+out/install/linux/lib/*
 !out/install/linux/lib/libblake3.so
-out/boost_1_77_0/
+out/boost_1_77_0*
 out/bitpolymul/out/
 out/coproto/out/
 out/function2/out/
