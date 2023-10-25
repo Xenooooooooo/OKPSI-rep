@@ -3,11 +3,15 @@
 out/build/
 out/install/linux/*
 !out/install/linux/lib/libblake3.so
+out/boost_1_77_0/
 out/bitpolymul/out/
 out/coproto/out/
 out/function2/out/
 out/libOTe/out/
+out/libOTe/thirdparty/log-bitpolymul.txt
 out/macoro/out/
+out/macoro/thirdparty/log-optional-lite.txt
+out/macoro/thirdparty/log-variant-lite.txt
 out/optional-lite/out/
 out/span-lite/out/
 out/variant-lite/out/
