@@ -1,0 +1,9 @@
+#pragma once
+
+
+// compile the library with GMW
+#cmakedefine VOLE_PSI_ENABLE_GMW @VOLE_PSI_ENABLE_GMW@ 
+
+
+// compile the library with OPPRF
+#cmakedefine VOLE_PSI_ENABLE_OPPRF @VOLE_PSI_ENABLE_OPPRF@ 

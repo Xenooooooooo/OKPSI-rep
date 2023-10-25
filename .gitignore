@@ -1,0 +1,16 @@
+.vs/
+.vscode/
+out/build/
+out/install/linux/*
+!out/install/linux/lib/libblake3.so
+out/bitpolymul/out/
+out/coproto/out/
+out/function2/out/
+out/libOTe/out/
+out/macoro/out/
+out/optional-lite/out/
+out/span-lite/out/
+out/variant-lite/out/
+tests/cmakeTests/
+CMakeSettings.json
+~/

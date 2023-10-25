@@ -1,0 +1,4 @@
+/home/lx1234/work/volepsi/out/span-lite/./out/install/linux/lib/cmake/span-lite/span-lite-targets.cmake
+/home/lx1234/work/volepsi/out/span-lite/./out/install/linux/lib/cmake/span-lite/span-lite-config.cmake
+/home/lx1234/work/volepsi/out/span-lite/./out/install/linux/lib/cmake/span-lite/span-lite-config-version.cmake
+/home/lx1234/work/volepsi/out/span-lite/./out/install/linux/include/nonstd/span.hpp
