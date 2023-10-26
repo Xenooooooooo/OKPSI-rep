@@ -357,6 +357,9 @@ void perfPSI(oc::CLP& cmd)
 #ifdef ENABLE_BITPOLYMUL
 	type = cmd.isSet("useQC") ? oc::MultType::QuasiCyclic : type;
 #endif
+
+	auto okvsType = volePSI::DefaultOKVSType;
+	okvsType = cmd.isSet("useRB") ? volePSI::OKVSType::RBMatrix : okvsType;
 	//IOService ios;
 
 	//auto chl0 = Session(ios, "localhost:1212", SessionMode::Server).addChannel();
@@ -385,6 +388,9 @@ void perfPSI(oc::CLP& cmd)
 
 	recv.setMultType(type);
 	send.setMultType(type);
+
+	recv.setOKVSType(okvsType);
+	send.setOKVSType(okvsType);
 
 	if (noCompress)
 	{
@@ -437,8 +443,8 @@ void perfPSI(oc::CLP& cmd)
 	{
 
 		std::cout << timer << std::endl;
-		std::cout << "Sender   comm: "<< sockets[0].bytesSent() /1024 /1024 << "MB" << std::endl;
-		std::cout << "Receiver comm: " << sockets[1].bytesSent() /1024 /1024 << "MB" << std::endl;
+		std::cout << "Sender   comm: "<< sockets[1].bytesSent() /1024 /1024 << "MB" << std::endl;
+		std::cout << "Receiver comm: " << sockets[0].bytesSent() /1024 /1024 << "MB" << std::endl;
 		if (v > 1)
 			std::cout << "s\n" << s << "\nr\n" << r << std::endl;
 		//std::cout <<"-------------log--------------------\n" << coproto::getLog() << std::endl;

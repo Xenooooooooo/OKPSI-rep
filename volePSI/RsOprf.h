@@ -17,6 +17,12 @@ using RBOKVS = oc::RBOKVS;
 
 namespace volePSI
 {
+    enum OKVSType{
+        GCT = 1,
+        RBMatrix = 2
+    };
+
+    constexpr OKVSType DefaultOKVSType = OKVSType::GCT;
 
     class RsOprfSender : public oc::TimerAdapter
     {
@@ -24,13 +30,17 @@ namespace volePSI
         oc::SilentVoleSender mVoleSender;
         span<block> mB;
         block mD;
-        // Baxos mPaxos;
+        Baxos mPaxos;
         RBOKVS mOKVS;
         bool mMalicious = false;
         block mW;
         u64 mBinSize = 1 << 14;
         u64 mSsp = 40;
         bool mDebug = false;
+
+        OKVSType mOKVSType = DefaultOKVSType;
+
+        void setOKVSType(OKVSType type) { mOKVSType = type; };
 
         void setMultType(oc::MultType type) { mVoleSender.mMultType = type; };
 
@@ -58,6 +68,10 @@ namespace volePSI
         u64 mSsp = 40;
         bool mDebug = false;
 
+        OKVSType mOKVSType = DefaultOKVSType;
+
+        void setOKVSType(OKVSType type) { mOKVSType = type; };
+        
         void setMultType(oc::MultType type) { mVoleRecver.mMultType = type; };
 
         Proto receive(span<const block> values, span<block> outputs, PRNG& prng, Socket& chl, u64 mNumThreads = 0, bool reducedRounds = false);

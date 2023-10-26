@@ -258,6 +258,8 @@ namespace volePSI
 #ifdef ENABLE_BITPOLYMUL
             type = cmd.isSet("useQC") ? oc::MultType::QuasiCyclic : type;
 #endif
+            auto okvsType = DefaultOKVSType;
+            okvsType = cmd.isSet("useRB") ? OKVSType::RBMatrix : okvsType;
 
             FileType ft = FileType::Unspecified;
             if (cmd.isSet("bin")) ft = FileType::Bin;
@@ -375,6 +377,7 @@ namespace volePSI
 
                 sender.mDebug = debug;
                 sender.setMultType(type);
+                sender.setOKVSType(okvsType);
                 sender.init(set.size(), theirSize, statSetParam, seed, mal, 1);
                 macoro::sync_wait(sender.run(set, chl));
                 macoro::sync_wait(chl.flush());
@@ -390,6 +393,7 @@ namespace volePSI
 
                 recver.mDebug = debug;
                 recver.setMultType(type);
+                recver.setOKVSType(okvsType);
                 recver.init(theirSize, set.size(), statSetParam, seed, mal, 1);
                 macoro::sync_wait(recver.run(set, chl));
                 macoro::sync_wait(chl.flush());

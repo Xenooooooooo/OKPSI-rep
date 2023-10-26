@@ -22,9 +22,18 @@ namespace volePSI
         setTimePoint("RsOprfSender::send-begin");
         ws = prng.get();
 
-        // mPaxos.init(n, mBinSize, 3, mSsp, PaxosParam::GF128, oc::ZeroBlock);
-
-        mOKVS.init(n, 0.1, mSsp, oc::ZeroBlock);
+        switch (mOKVSType)
+        {
+        case OKVSType::GCT:
+            mPaxos.init(n, mBinSize, 3, mSsp, PaxosParam::GF128, oc::ZeroBlock);
+            break;
+        case OKVSType::RBMatrix:
+            mOKVS.init(n, 0.1, mSsp, oc::ZeroBlock);
+            break;
+        default:
+            throw RTE_LOC;
+            break;
+        }
 
         mD = prng.get();
 
@@ -50,7 +59,18 @@ namespace volePSI
 
         // block seed;
         MC_AWAIT(chl.recv(seed));
-        mOKVS.setSeed(seed);
+        switch (mOKVSType)
+        {
+        case OKVSType::GCT:
+            mPaxos.mSeed = seed;
+            break;
+        case OKVSType::RBMatrix:
+            mOKVS.setSeed(seed);
+            break;
+        default:
+            throw RTE_LOC;
+            break;
+        }
 
         setTimePoint("RsOprfSender::recv-seed");
         MC_AWAIT(fu);
@@ -72,8 +92,20 @@ namespace volePSI
         // pPtr.reset(new block[mPaxos.size()]);
         // pp = span<block>(pPtr.get(), mPaxos.size());
 
-        pPtr.reset(new block[mOKVS.mSize]);
-        pp = span<block>(pPtr.get(), mOKVS.mSize);
+        switch (mOKVSType)
+        {
+        case OKVSType::GCT:
+            pPtr.reset(new block[mPaxos.size()]);
+            pp = span<block>(pPtr.get(), mPaxos.size());
+            break;
+        case OKVSType::RBMatrix:
+            pPtr.reset(new block[mOKVS.mSize]);
+            pp = span<block>(pPtr.get(), mOKVS.mSize);
+            break;
+        default:
+            throw RTE_LOC;
+            break;
+        }
         
         setTimePoint("RsOprfSender::alloc ");
 
@@ -173,9 +205,18 @@ namespace volePSI
     {
         setTimePoint("RsOprfSender::eval-begin");
 
-        // mPaxos.decode<block>(val, output, mB, numThreads);
-
-        mOKVS.decode(mB.data(), val.data(), val.size(), output.data(), 1);
+        switch (mOKVSType)
+        {
+        case OKVSType::GCT:
+            mPaxos.decode<block>(val, output, mB, numThreads);
+            break;
+        case OKVSType::RBMatrix:
+            mOKVS.decode(mB.data(), val.data(), val.size(), output.data(), 1);
+            break;
+        default:
+            throw RTE_LOC;
+            break;
+        }
 
         setTimePoint("RsOprfSender::eval-decode");
 
@@ -266,12 +307,22 @@ namespace volePSI
 
     Proto RsOprfSender::genVole(PRNG& prng, Socket& chl, bool reduceRounds)
     {
-        if (reduceRounds)
-            // mVoleSender.configure(mPaxos.size(), oc::SilentBaseType::Base);
-            mVoleSender.configure(mOKVS.mSize, oc::SilentBaseType::Base);
-
-        // return mVoleSender.silentSendInplace(mD, mPaxos.size(), prng, chl);
-        return mVoleSender.silentSendInplace(mD, mOKVS.mSize, prng, chl);
+        switch (mOKVSType)
+        {
+        case OKVSType::GCT:
+            if (reduceRounds)
+                mVoleSender.configure(mPaxos.size(), oc::SilentBaseType::Base);
+            return mVoleSender.silentSendInplace(mD, mPaxos.size(), prng, chl);
+            break;
+        case OKVSType::RBMatrix:
+            if (reduceRounds)
+                mVoleSender.configure(mOKVS.mSize, oc::SilentBaseType::Base);
+            return mVoleSender.silentSendInplace(mD, mOKVS.mSize, prng, chl);
+            break;
+        default:
+            throw RTE_LOC;
+            break;
+        }
     }
 
     struct UninitVec : span<block>
@@ -293,7 +344,7 @@ namespace volePSI
             wr = block{},
             ws = block{},
             Hws = std::array<u8, 32> {},
-            // paxos = Baxos{},
+            paxos = Baxos{},
             OKVS = RBOKVS{},
             hPtr = std::unique_ptr<block[]>{},
             h = span<block>{},
@@ -313,10 +364,20 @@ namespace volePSI
             throw RTE_LOC;
 
         hashingSeed = prng.get(), wr = prng.get();
-        // paxos.mDebug = mDebug;
-        // paxos.init(values.size(), mBinSize, 3, mSsp, PaxosParam::GF128, hashingSeed);
 
-        OKVS.init(values.size(), 0.1, mSsp, hashingSeed);
+        switch (mOKVSType)
+        {
+        case OKVSType::GCT:
+            paxos.mDebug = mDebug;
+            paxos.init(values.size(), mBinSize, 3, mSsp, PaxosParam::GF128, hashingSeed);
+            break;
+        case OKVSType::RBMatrix:
+            OKVS.init(values.size(), 0.1, mSsp, hashingSeed);
+            break;
+        default:
+            throw RTE_LOC;
+            break;
+        }
 
         if (mMalicious)
         {
@@ -330,11 +391,23 @@ namespace volePSI
             mVoleRecver.setTimer(*mTimer);
 
         fork = chl.fork();
-        // fu = genVole(paxos.size(), prng, fork, reducedRounds)
-            // | macoro::make_eager();
 
-        fu = genVole(OKVS.mSize, prng, fork, reducedRounds) 
-            | macoro::make_eager();
+        switch (mOKVSType)
+        {
+        case OKVSType::GCT:
+            fu = genVole(paxos.size(), prng, fork, reducedRounds)
+                | macoro::make_eager();
+            break;
+        case OKVSType::RBMatrix:
+            fu = genVole(OKVS.mSize, prng, fork, reducedRounds)
+                | macoro::make_eager();
+            break;
+        default:
+            throw RTE_LOC;
+            break;
+        }
+        // fu = genVole(paxos.size(), prng, fork, reducedRounds)
+        //     | macoro::make_eager();
 
 
         hPtr.reset(new block[values.size()]);
@@ -343,19 +416,33 @@ namespace volePSI
         oc::mAesFixedKey.hashBlocks(values, h);
         setTimePoint("RsOprfReceiver::receive-hash");
 
-        //auto pPtr = std::make_shared<std::vector<block>>(paxos.size());
-        //span<block> p = *pPtr;
-
-        // p.resize(paxos.size());
-
-        p.resize(OKVS.mSize);
+        switch (mOKVSType)
+        {
+        case OKVSType::GCT:
+            p.resize(paxos.size());
+            break;
+        case OKVSType::RBMatrix:
+            p.resize(OKVS.mSize);
+            break;
+        default:
+            throw RTE_LOC;
+            break;
+        }
 
         setTimePoint("RsOprfReceiver::receive-alloc");
 
-        // paxos.solve<block>(values, h, p, nullptr, numThreads);
-
-        // values: keys, h: values, p: output
-        OKVS.encode(values.data(), h.data(), p.data());
+        switch (mOKVSType)
+        {
+        case OKVSType::GCT:
+            paxos.solve<block>(values, h, p, nullptr, numThreads);
+            break;
+        case OKVSType::RBMatrix:
+            OKVS.encode(values.data(), h.data(), p.data());
+            break;
+        default:
+            throw RTE_LOC;
+            break;
+        }
         
         setTimePoint("RsOprfReceiver::receive-solve");
         MC_AWAIT(fu);
@@ -455,9 +542,18 @@ namespace volePSI
 
         }
 
-        // paxos.decode<block>(values, outputs, a, numThreads);
-
-        OKVS.decode(a.data(), values.data(), values.size(), outputs.data(), 1);
+        switch (mOKVSType)
+        {
+        case OKVSType::GCT:
+            paxos.decode<block>(values, outputs, a, numThreads);
+            break;
+        case OKVSType::RBMatrix:
+            OKVS.decode(a.data(), values.data(), values.size(), outputs.data(), 1);
+            break;
+        default:
+            throw RTE_LOC;
+            break;
+        }
 
         setTimePoint("RsOprfReceiver::receive-decode");
 
