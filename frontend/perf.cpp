@@ -1,6 +1,7 @@
 #include "perf.h"
 #include "cryptoTools/Network/IOService.h"
 #include "volePSI/RsPsi.h"
+#include "volePSI/Mpsi.h"
 #include "volePSI/SimpleIndex.h"
 
 #include "libdivide.h"
@@ -451,10 +452,47 @@ void perfPSI(oc::CLP& cmd)
 	}
 }
 
+void perfMpsi_User(oc::CLP& cmd)
+{
+	u64 User_Num = cmd.getOr("nu", 2ull);
+	u64 My_Id = cmd.getOr("id", User_Num - 1);
+	u64 Set_Size =  1ull << cmd.getOr("nn", 10);
+	u64 Lambda = cmd.getOr("la", 40ull);
+	u64 Thread_Num = cmd.getOr("nt", 1);
+	u64 Test_Size = cmd.getOr("ts", Set_Size/10);
+	PRNG prng(toBlock(My_Id));
+
+	if (My_Id == User_Num - 1)
+		std::cout << "Mpsi_Tests:" << std::endl \
+			<< "User_Num:" << User_Num << " Receiver_Id:" << My_Id << " Set_Size:" << Set_Size  \
+			<< " Lambda:" << Lambda << " Thread_Num:" << Thread_Num << std::endl <<std::endl;
+
+	std::vector<block> User_Set(Set_Size);	
+	prng.get<block>(User_Set);
+
+	for (u64 j=0ull; j<Test_Size; j++)
+			User_Set[j*(My_Id+1)%Set_Size]=toBlock(j);
+	
+	Mpsi_User User;
+	Timer time;
+	time.setTimePoint("start");
+	User.run(User_Num, My_Id, Set_Size, Lambda, Thread_Num, ZeroBlock, User_Set);
+	time.setTimePoint("end");
+	std::cout <<"User_Id:" << My_Id << "Comm: "<< User.Comm /1024.0 /1024 << "MB" << std::endl << time << std::endl << std::endl;
+	if (My_Id == User_Num - 1){
+		std::cout << "Intersection Size: " << User.Size_Intersection << std::endl;
+		for (u64 i = 0ull; i < User.Size_Intersection; i+=User.Size_Intersection/10)
+			std::cout << User.Multi_Intersection[i] <<std::endl;
+	}
+	return ;
+}
+
 void perf(oc::CLP& cmd)
 {
 	if (cmd.isSet("psi"))
 		return perfPSI(cmd);
+	if (cmd.isSet("mpsi"))
+		perfMpsi_User(cmd);
 	if (cmd.isSet("paxos"))
 		perfPaxos(cmd);
 	if (cmd.isSet("baxos"))
