@@ -2,7 +2,7 @@
 
 ## 2PSI
 
-本项目中的两方PSI框架来源于[VOLE-PSI: Fast OPRF and Circuit-PSI from Vector-OLE](https://eprint.iacr.org/2021/266)和[Blazing Fast PSI from Improved OKVS and Subfield VOLE](misc/blazingFastPSI.pdf)两篇论文，结合论文[Expand-Convolute Codes for Pseudorandom Correlation Generators from LPN](https://eprint.iacr.org/2023/882)中的Expand-Convolute码与[Near-Optimal Oblivious Key-Value Stores for Efficient PSI, PSU and Volume-Hiding Multi-Maps](https://eprint.iacr.org/2023/903)中的RB-OKVS进行改进，并使用了BLAKE3作为更高效的哈希函数。本项目在开源代码[volePSI](https://github.com/Visa-Research/volepsi)的基础上进行修改。关于技术细节和代码的修改细节，请查看[技术细节说明文档](misc/技术细节.md)。
+本项目中的两方PSI框架来源于[VOLE-PSI: Fast OPRF and Circuit-PSI from Vector-OLE](https://eprint.iacr.org/2021/266)和[Blazing Fast PSI from Improved OKVS and Subfield VOLE](misc/blazingFastPSI.pdf)两篇论文，结合论文[Expand-Convolute Codes for Pseudorandom Correlation Generators from LPN](https://eprint.iacr.org/2023/882)中的Expand-Convolute码与[Near-Optimal Oblivious Key-Value Stores for Efficient PSI, PSU and Volume-Hiding Multi-Maps](https://eprint.iacr.org/2023/903)中的RB-OKVS进行改进，并使用了BLAKE3作为更高效的哈希函数。本项目在开源代码[volePSI](https://github.com/Visa-Research/volepsi)的基础上进行修改。关于技术细节和代码的修改细节，请查看[技术细节说明文档](misc/技术细节说明文档.md)。
 
 ### Build
 
