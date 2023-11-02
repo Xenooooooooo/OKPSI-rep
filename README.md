@@ -1,75 +1,78 @@
-# Vole-PSI
+# BAEC-PSI
 
+## 2PSI
 
-Vole-PSI implements the protocols described in [VOLE-PSI: Fast OPRF and Circuit-PSI from Vector-OLE](https://eprint.iacr.org/2021/266) and [Blazing Fast PSI from Improved OKVS and Subfield VOLE](misc/blazingFastPSI.pdf). The library implements standard [Private Set Intersection (PSI)](https://en.wikipedia.org/wiki/Private_set_intersection) along with a variant called Circuit PSI where the result is secret shared between the two parties.
-
-The library is cross platform (win,linux,mac) and depends on [libOTe](https://github.com/osu-crypto/libOTe), [sparsehash](https://github.com/sparsehash/sparsehash), [Coproto](https://github.com/Visa-Research/coproto).
+本项目中的两方PSI框架来源于[VOLE-PSI: Fast OPRF and Circuit-PSI from Vector-OLE](https://eprint.iacr.org/2021/266)和[Blazing Fast PSI from Improved OKVS and Subfield VOLE](misc/blazingFastPSI.pdf)两篇论文，结合论文[Expand-Convolute Codes for Pseudorandom Correlation Generators from LPN](https://eprint.iacr.org/2023/882)中的Expand-Convolute码与[Near-Optimal Oblivious Key-Value Stores for Efficient PSI, PSU and Volume-Hiding Multi-Maps](https://eprint.iacr.org/2023/903)中的RB-OKVS进行改进，并使用了BLAKE3作为更高效的哈希函数。本项目在开源代码[volePSI](https://github.com/Visa-Research/volepsi)的基础上进行修改。关于技术细节和代码的修改细节，请查看[技术细节说明文档](misc/技术细节.md)。
 
 ### Build
 
-The library can be cloned and built with networking support as
+代码编译过程如下，依赖库在`out`文件夹下进行编译和安装，在Ubuntu 22.04，g++ 11.3.0和cmake 3.22.1下已通过测试。
 ```
-git clone https://github.com/Visa-Research/volepsi.git
-cd volepsi
+git clone https://github.com/lx-1234/BAEC-2psi
+cd BAEC-2psi
 python3 build.py -DVOLE_PSI_ENABLE_BOOST=ON
 ```
-If TCP/IP support is not required, then a minimal version of the library can be build by calling `python3 build.py`. See below and the cmake/python output for additional options.
-The user can manually call cmake as well.
 
-The output library `volePSI` and executable `frontend` will be written to `out/build/<platform>/`. The `frontend` can perform PSI based on files as input sets and communicate via sockets. See the output of `frontend` for details. There is also two example on how to perform [networking](https://github.com/Visa-Research/volepsi/blob/main/frontend/networkSocketExample.h#L7) or [manually](https://github.com/Visa-Research/volepsi/blob/main/frontend/messagePassingExample.h#L93) get & send the protocol messages.
+编译完成之后，可以在`out/build/linux/frontend`下看到可执行文件`frontend`。
 
-##### Compile Options
-Options can be set as `-D NAME=VALUE`. For example, `-D VOLE_PSI_NO_SYSTEM_PATH=true`. See the output of the build for default/current value. Options include :
+##### 编译选项
+
+本仓库已包含大部分依赖库的源代码，基础依赖库除了`boost`外无需再下载。特别地，椭圆曲线库默认使用[libsodium](https://github.com/osu-crypto/libsodium)而不是[relic](https://github.com/relic-toolkit/relic)。
+
+编译选项可以使用命令`-D NAME=VALUE`进行设置。例如，`-D VOLE_PSI_NO_SYSTEM_PATH=true`。通过build可以看到各个选项的默认值或者现在的值。一些其它可选的编译选项包括：
  * `VOLE_PSI_NO_SYSTEM_PATH`, values: `true,false`.  When looking for dependencies, do not look in the system install. Instead use `CMAKE_PREFIX_PATH` and the internal dependency management.  
 * `CMAKE_BUILD_TYPE`, values: `Debug,Release,RelWithDebInfo`. The build type. 
 * `FETCH_AUTO`, values: `true,false`. If true, dependencies will first be searched for and if not found then automatically downloaded.
-* `FETCH_SPARSEHASH`, values: `true,false`. If true, the dependency sparsehash will always be downloaded. 
-* `FETCH_LIBOTE`, values: `true,false`. If true, the dependency libOTe will always be downloaded. 
-* `FETCH_LIBDIVIDE`, values: `true,false`. If true, the dependency libdivide will always be downloaded. 
 * `VOLE_PSI_ENABLE_SSE`, values: `true,false`. If true, the library will be built with SSE intrinsics support. 
 * `VOLE_PSI_ENABLE_PIC`, values: `true,false`. If true, the library will be built `-fPIC` for shared library support. 
 * `VOLE_PSI_ENABLE_ASAN`, values: `true,false`. If true, the library will be built ASAN enabled. 
-* `VOLE_PSI_ENABLE_GMW`, values: `true,false`. If true, the GMW protocol will be compiled. Only used for Circuit PSI.
-* `VOLE_PSI_ENABLE_CPSI`, values: `true,false`. If true,  the circuit PSI protocol will be compiled. 
-* `VOLE_PSI_ENABLE_OPPRF`, values: `true,false`.  If true, the OPPRF protocol will be compiled. Only used for Circuit PSI.
 * `VOLE_PSI_ENABLE_BOOST`, values: `true,false`. If true, the library will be built with boost networking support. This support is managed by libOTe. 
 * `VOLE_PSI_ENABLE_OPENSSL`, values: `true,false`. If true,the library will be built with OpenSSL networking support. This support is managed by libOTe. If enabled, it is the responsibility of the user to install openssl to the system or to a location contained in `CMAKE_PREFIX_PATH`.
-* `VOLE_PSI_ENABLE_BITPOLYMUL`, values: `true,false`. If true, the library will be built with quasicyclic codes for VOLE which are more secure than the alternative. This support is managed by libOTe. 
-* `VOLE_PSI_ENABLE_SODIUM`, values: `true,false`. If true, the library will be built libSodium for doing elliptic curve operations. This or relic must be enabled. This support is managed by libOTe. 
-* `VOLE_PSI_SODIUM_MONTGOMERY`, values: `true,false`. If true, the library will use a non-standard version of sodium that enables slightly better efficiency. 
 * `VOLE_PSI_ENABLE_RELIC`, values: `true,false`. If true, the library will be built relic for doing elliptic curve operations. This or sodium must be enabled. This support is managed by libOTe. 
 
 
-### Installing
+### 安装
 
-The library and any fetched dependencies can be installed. 
-```
+本项目和相关的依赖库可以使用以下命令进行安装。
+```bash
 python3 build.py --install
-```
-or 
-```
+# or
 python3 build.py --install=install/prefix/path
 ```
-if a custom install prefix is perfected. Install can also be performed via cmake.
 
-### Linking
+### 链接
 
-libOTe can be linked via cmake as
-```
+本项目可以通过cmake进行链接
+```cmake
 find_package(volepsi REQUIRED)
 target_link_libraries(myProject visa::volepsi)
 ```
-To ensure that cmake can find volepsi, you can either install volepsi or build it locally and set `-D CMAKE_PREFIX_PATH=path/to/volepsi` or provide its location as a cmake `HINTS`, i.e. `find_package(volepsi HINTS path/to/volepsi)`.
+为了确保cmake能够找到volepsi，你可以安装volepsi或者在编译时通过编译选项指定volepsi的路径`-D CMAKE_PREFIX_PATH=path/to/volepsi`，或者在cmake种使用`HINTS`提供volepsi的路径，即`find_package(volepsi HINTS path/to/volepsi)`。
 
-To link a non-cmake project you will need to link volepsi, libOTe,coproto, macoro, (sodium or relic), optionally boost and openss if enabled. These will be installed to the install location and staged to `./out/install/<platform>`. 
+### 运行
 
-
-### Dependency Management
-
-By default the dependencies are fetched automatically. This can be turned off by using cmake directly or adding `-D FETCH_AUTO=OFF`. For other options see the cmake output or that of `python build.py --help`.
-
-If the dependency is installed to the system, then cmake should automatically find it if `VOLE_PSI_NO_SYSTEM_PATH` is `false`. If they are installed to a specific location, then you call tell cmake about them as 
+要运行项目代码，请使用以下命令
+```bash
+# in BAEC-2psi/out/build/linux/frontend
+# 查看所有可选参数
+./frontend
+# 对各个模块正确性进行测试
+./frontend -u
+# 本地运行2PSI，进行效率测试
+./frontend -perf -psi -v -nn 20 -nt 4
+# 通过csv文件读取输入，进行2PSI
+./frontend -in senderInput.txt -r 0 -nt 4 & ./frontend -in recverInput.txt -r 1 -nt 4
 ```
-python3 build.py -D CMAKE_PREFIX_PATH=install/prefix/path
+
+要使用通信量更低的`RB-OKVS`，只需加上参数`-useRB`，如
+```bash
+# in BAEC-2psi/out/build/linux/frontend
+./frontend -perf -psi -v -nn 20 -nt 4 -useRB
 ```
 
+测试数据生成
+```bash
+# in BAEC-2psi
+python3 data_generation_in_csv.py
+```
+通过修改`data_number`和`intersection_card`可以分别修改测试集合大小和设定交集大小。
