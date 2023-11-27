@@ -1,8 +1,4 @@
-#include "OT_Tests.h"
-
-#include "libOTe/Base/BaseOT.h"
-#include "libOTe/Tools/Tools.h"
-#include "libOTe/Tools/LinearCode.h"
+#include "Tool_Tests.h"
 
 #include <cryptoTools/Crypto/RBOKVS.h>
 
@@ -30,9 +26,10 @@ using namespace boost;
 namespace tests_libOTe
 {
 
-    void RBOKVS_Correctness_Test(){
+    void RBOKVS_Correctness_Test(const oc::CLP& cmd){
 #ifdef CRYPTOTOOLS_RBOKVS_H
-        u64 n = 1 << 16;
+        u64 n = 1 << cmd.getOr("nn", 16);
+        u64 t = cmd.getOr("nt", 1);
         RBOKVS okvsTest;
         // epsilon \in {0.03, 0.05, 0.07, 0.1} 
         okvsTest.init(n, 0.1, 40, sysRandomSeed());
@@ -67,7 +64,7 @@ namespace tests_libOTe
         }
 
         // batch decode
-        okvsTest.decode(codeWords.get(), keys.get(), n, output.get(), 8);
+        okvsTest.decode(codeWords.get(), keys.get(), n, output.get(), t);
         for (u64 i = 0; i < n; ++i){
             if (output[i] != values[i]){
                 throw std::runtime_error("batch decoding is wrong");
@@ -80,9 +77,10 @@ namespace tests_libOTe
 #endif
     }
 
-    void RBOKVS_Efficiency_Test(){
+    void RBOKVS_Efficiency_Test(const oc::CLP &cmd){
 #ifdef CRYPTOTOOLS_RBOKVS_H
-        u64 n = 1 << 20;
+        u64 n = 1 << cmd.getOr("nn", 16);
+        u64 numTrials = cmd.getOr("try", 1);
         RBOKVS okvsTest;
         // epsilon \in {0.03, 0.05, 0.07, 0.1} 
         okvsTest.init(n, 0.1, 40, sysRandomSeed());
@@ -102,7 +100,7 @@ namespace tests_libOTe
         prng.get(keys.get(), n);
         prng.get(values.get(), n);
 
-        u64 numFails = 0, numTrials = 20;
+        u64 numFails = 0;
         
         Timer timer;
         timer.setTimePoint("start");

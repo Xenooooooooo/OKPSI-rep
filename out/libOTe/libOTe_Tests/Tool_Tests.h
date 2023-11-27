@@ -2,13 +2,10 @@
 
 #include "cryptoTools/Common/BitVector.h"
 #include "cryptoTools/Common/block.h"
-
-#include <boost/random/mersenne_twister.hpp>
-#include <boost/random/uniform_int_distribution.hpp>
-#include <boost/random/variate_generator.hpp>
+#include <cryptoTools/Common/CLP.h>
 
 namespace tests_libOTe
 {
-    void RBOKVS_Correctness_Test();
-    void RBOKVS_Efficiency_Test();
+    void RBOKVS_Correctness_Test(const oc::CLP &cmd);
+    void RBOKVS_Efficiency_Test(const oc::CLP &cmd);
 }
