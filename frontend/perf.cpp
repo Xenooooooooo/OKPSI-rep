@@ -474,16 +474,21 @@ void perfMpsi_User(oc::CLP& cmd)
 			User_Set[j*(My_Id+1)%Set_Size]=toBlock(j);
 	
 	Mpsi_User User;
-	Timer time;
+	Timer time, timer;
+	User.setTimer(timer);
 	time.setTimePoint("start");
 	User.run(User_Num, My_Id, Set_Size, Lambda, Thread_Num, ZeroBlock, User_Set);
 	time.setTimePoint("end");
-	std::cout <<"User_Id:" << My_Id << "Comm: "<< User.Comm /1024.0 /1024 << "MB" << std::endl << time << std::endl << std::endl;
-	if (My_Id == User_Num - 1){
-		std::cout << "Intersection Size: " << User.Size_Intersection << std::endl;
-		for (u64 i = 0ull; i < User.Size_Intersection; i+=User.Size_Intersection/10)
-			std::cout << User.Multi_Intersection[i] <<std::endl;
+	// if (My_Id == User_Num - 1){
+	// 	std::cout << "Intersection Size: " << User.Size_Intersection << std::endl;
+	// 	for (u64 i = 0ull; i < User.Size_Intersection; i+=User.Size_Intersection/10)
+	// 		std::cout << User.Multi_Intersection[i] <<std::endl;
+	// }
+	if (My_Id == User_Num - 1 || My_Id == User_Num - 2 || My_Id == User_Num - 3){
+		std::cout <<"User_Id:" << My_Id << "Comm: "<< User.Comm /1024.0 /1024 << "MB" << std::endl << time << std::endl;
+		std::cout << timer << '\n' << std::endl;
 	}
+
 	return ;
 }
 
