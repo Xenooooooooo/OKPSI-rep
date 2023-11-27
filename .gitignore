@@ -21,3 +21,4 @@ out/variant-lite/out/
 tests/cmakeTests/
 CMakeSettings.json
 ~/
+out/libOTe/cryptoTools/__pycache__/
