@@ -78,10 +78,15 @@ namespace volePSI
 
             for (u64 i = 0ull; i < User_Num - 1; i++)
                 Comm += Chl[i].bytesSent();
+
+                
             
             setTimePoint("Get Intersection Finish");
             //std::cout <<"Get Intersection Finish"<<std::endl;  
             //std::cout << User <<std::endl;
+
+            for (u64 i = 0ull; i < User_Num - 1; i++)
+                Chl[i].close();
         }
         else{
             Chl.resize(3);
@@ -140,6 +145,9 @@ namespace volePSI
                 
             }
             Comm += Chl[(My_Id == User_Num -1 -1)?(0):(2)].bytesSent();
+            Chl[0].close();
+            if (My_Id != 0ull) Chl[1].close();
+            if (My_Id != User_Num -1 -1) Chl[2].close();
         }
         return ;
     }
