@@ -8,10 +8,12 @@
 #include "volePSI/SimpleIndex.h"
 #include "libdivide.h"
 #include "coproto/Socket/AsioSocket.h"
+#include <cryptoTools/Crypto/RBOKVS.h>
 
 #define BASE_PORT 2000
-#define CUCKOO_HASH_NUM 3
-#define GCT_Bin_Size 1<<14
+// #define CUCKOO_HASH_NUM 3
+// #define GCT_Bin_Size 1<<14
+using RBOKVS = oc::RBOKVS;
 
 namespace volePSI
 {
@@ -32,15 +34,22 @@ namespace volePSI
 
             std::vector<block> Rand_Num(Set_Size);
             Prng.get<block>(Rand_Num);
-            Baxos Paxos;
-            Paxos.init(Set_Size, GCT_Bin_Size, CUCKOO_HASH_NUM, Lambda, PaxosParam::GF128, Seed);
-            u64 Paxos_Size = Paxos.size();
-            std::vector<block> GCT(Paxos_Size);
+            
+            // Baxos Paxos;
+            // Paxos.init(Set_Size, GCT_Bin_Size, CUCKOO_HASH_NUM, Lambda, PaxosParam::GF128, Seed);
+            
+            RBOKVS Paxos;
+            Paxos.init(Set_Size, 0.1, Lambda, Seed);
+
+            std::vector<block> GCT(Paxos.mSize);
             
             // std::cout <<"Receiver: before encode"<<std::endl;
             
             // if prng is nullptr and numThreads > 1, it will be wrong
-            Paxos.solve<block>(Inputs, Rand_Num, GCT, &Prng, 1);
+            // Paxos.solve<block>(Inputs, Rand_Num, GCT, &Prng, 1);
+
+            Paxos.encode(Inputs.data(), Rand_Num.data(), GCT.data());
+
 
             setTimePoint("GCT Finish");
             // std::cout <<"Receiver: GCT Finish" << std::endl;
@@ -48,9 +57,11 @@ namespace volePSI
             std::vector<std::vector<block>> Share(User_Num - 2);
 
             for (u64 i = 0ull; i < User_Num - 1 - 1; i++){
-                Share[i].resize(Paxos_Size);
+                // Share[i].resize(Paxos.size());
+                Share[i].resize(Paxos.mSize);
                 Prng.get<block>(Share[i]);
-                for (u64 j = 0ull; j < Paxos_Size; j++)
+                // for (u64 j = 0ull; j < Paxos.size(); j++)
+                for (u64 j = 0ull; j < Paxos.mSize; j++)
                     GCT[j] = GCT[j] ^ Share[i][j];
             }
 
@@ -112,20 +123,29 @@ namespace volePSI
             setTimePoint("Chl Finish");
             // std::cout <<"Sender: Chl Finish"<<std::endl;
 
-            Baxos Paxos;
-            Paxos.init(Set_Size, GCT_Bin_Size, CUCKOO_HASH_NUM, Lambda, PaxosParam::GF128, Seed);
+            // Baxos Paxos;
+            // Paxos.init(Set_Size, GCT_Bin_Size, CUCKOO_HASH_NUM, Lambda, PaxosParam::GF128, Seed);
+            
+            RBOKVS Paxos;
+            Paxos.init(Set_Size, 0.1, Lambda, Seed);
             
             std::vector<std::vector<block>> GCT(User_Num - 1);
-            GCT[0].resize(Paxos.size());
+
+            // GCT[0].resize(Paxos.size());
+            GCT[0].resize(Paxos.mSize);
+
             coproto::sync_wait(Chl[0].recv(GCT[0]));
             std::vector<block> Result(Set_Size);
-            Paxos.decode<block>(Inputs, Result, GCT[0], Thread_Num);
+            
+            // Paxos.decode<block>(Inputs, Result, GCT[0], Thread_Num);
+            Paxos.decode(GCT[0].data(), Inputs.data(), Inputs.size(), Result.data(), 1);
 
             // recv GCT from P1 - Pn-2
             std::vector<std::thread> recvThrds(User_Num - 2);
             for (u64 i = 1; i < User_Num - 1; ++i){
                 recvThrds[i - 1] = std::thread([&, i]() {
-                    GCT[i].resize(Paxos.size());
+                    // GCT[i].resize(Paxos.size());
+                    GCT[i].resize(Paxos.mSize);
                     coproto::sync_wait(Chl[i].recv(GCT[i]));
                 });
             }
@@ -135,11 +155,13 @@ namespace volePSI
             // std::cout <<"Sender: receive GCT Finish"<<std::endl;
             
             for (u64 i = 1; i < User_Num - 1; i++){
-                for (u64 j = 0; j < Paxos.size(); j++)
+                // for (u64 j = 0; j < Paxos.size(); j++)
+                for (u64 j = 0; j < Paxos.mSize; j++)
                     GCT[0][j] ^= GCT[i][j];
             }
             // std::cout << "Sender: GCT oplus finish" << std::endl;
-            Paxos.decode<block>(Inputs, Result, GCT[0], Thread_Num);
+            // Paxos.decode<block>(Inputs, Result, GCT[0], Thread_Num);
+            Paxos.decode(GCT[0].data(), Inputs.data(), Inputs.size(), Result.data(), 1);
 
             setTimePoint("Decode Finish");
             // std::cout <<"Sender: Decode Finish"<<std::endl;
@@ -173,20 +195,28 @@ namespace volePSI
             setTimePoint("Chl Finish");
             // std::cout <<"Client: Chl Finish" << std::endl;
 
-            Baxos Paxos;
-            Paxos.init(Set_Size, GCT_Bin_Size, CUCKOO_HASH_NUM, Lambda, PaxosParam::GF128, Seed);
+            // Baxos Paxos;
+            // Paxos.init(Set_Size, GCT_Bin_Size, CUCKOO_HASH_NUM, Lambda, PaxosParam::GF128, Seed);
+
+            RBOKVS Paxos;
+            Paxos.init(Set_Size, 0.1, Lambda, Seed);
             
-            std::vector<block> Share(Paxos.size()), Decode_Share(Set_Size);
+            // std::vector<block> Share(Paxos.size()), Decode_Share(Set_Size);
+            std::vector<block> Share(Paxos.mSize), Decode_Share(Set_Size);
+            
             coproto::sync_wait(Chl[0].recv(Share));
 
             setTimePoint("receive Share Finish");
             // std::cout <<"Client: receive Share Finish" << std::endl;
 
-            std::vector<block> GCT(Paxos.size());
-            Paxos.decode<block>(Inputs, Decode_Share, Share, Thread_Num);
+            // std::vector<block> GCT(Paxos.size());
+            // Paxos.decode<block>(Inputs, Decode_Share, Share, Thread_Num);
+            std::vector<block> GCT(Paxos.mSize);
+            Paxos.decode(Share.data(), Inputs.data(), Inputs.size(), Decode_Share.data(), 1);
 
             // if prng is nullptr and numThreads > 1, it will be wrong
-            Paxos.solve<block>(Inputs, Decode_Share, GCT, &Prng, 1);
+            // Paxos.solve<block>(Inputs, Decode_Share, GCT, &Prng, 1);
+            Paxos.encode(Inputs.data(), Decode_Share.data(), GCT.data());
 
             setTimePoint("GCT Reconstruction Finish");
             // std::cout <<"Client: GCT Reconstruction Finish" << std::endl;
