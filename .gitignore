@@ -18,6 +18,7 @@ out/macoro/thirdparty/log-variant-lite.txt
 out/optional-lite/out/
 out/span-lite/out/
 out/variant-lite/out/
+out/libsodium/out/
 tests/cmakeTests/
 CMakeSettings.json
 ~/
