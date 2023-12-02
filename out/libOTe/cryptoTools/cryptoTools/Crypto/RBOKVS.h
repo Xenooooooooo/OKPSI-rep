@@ -57,7 +57,7 @@ namespace osuCrypto{
         // PRNG for encode
         PRNG mPrng;
         // hash function
-        blake3_hasher mHasher;
+        // blake3_hasher mHasher;
         Timer mTimer;
 
         RBOKVS() = default;

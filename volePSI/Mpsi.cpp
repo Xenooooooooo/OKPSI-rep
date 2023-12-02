@@ -137,9 +137,6 @@ namespace volePSI
             coproto::sync_wait(Chl[0].recv(GCT[0]));
             std::vector<block> Result(Set_Size);
             
-            // Paxos.decode<block>(Inputs, Result, GCT[0], Thread_Num);
-            Paxos.decode(GCT[0].data(), Inputs.data(), Inputs.size(), Result.data(), 1);
-
             // recv GCT from P1 - Pn-2
             std::vector<std::thread> recvThrds(User_Num - 2);
             for (u64 i = 1; i < User_Num - 1; ++i){
@@ -161,7 +158,7 @@ namespace volePSI
             }
             // std::cout << "Sender: GCT oplus finish" << std::endl;
             // Paxos.decode<block>(Inputs, Result, GCT[0], Thread_Num);
-            Paxos.decode(GCT[0].data(), Inputs.data(), Inputs.size(), Result.data(), 1);
+            Paxos.decode(GCT[0].data(), Inputs.data(), Inputs.size(), Result.data(), Thread_Num);
 
             setTimePoint("Decode Finish");
             // std::cout <<"Sender: Decode Finish"<<std::endl;
@@ -212,7 +209,7 @@ namespace volePSI
             // std::vector<block> GCT(Paxos.size());
             // Paxos.decode<block>(Inputs, Decode_Share, Share, Thread_Num);
             std::vector<block> GCT(Paxos.mSize);
-            Paxos.decode(Share.data(), Inputs.data(), Inputs.size(), Decode_Share.data(), 1);
+            Paxos.decode(Share.data(), Inputs.data(), Inputs.size(), Decode_Share.data(), Thread_Num);
 
             // if prng is nullptr and numThreads > 1, it will be wrong
             // Paxos.solve<block>(Inputs, Decode_Share, GCT, &Prng, 1);

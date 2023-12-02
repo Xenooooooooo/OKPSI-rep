@@ -81,6 +81,7 @@ namespace tests_libOTe
 #ifdef CRYPTOTOOLS_RBOKVS_H
         u64 n = 1 << cmd.getOr("nn", 16);
         u64 numTrials = cmd.getOr("try", 1);
+        u64 numThreads = cmd.getOr("nt", 1);
         RBOKVS okvsTest;
         // epsilon \in {0.03, 0.05, 0.07, 0.1} 
         okvsTest.init(n, 0.1, 40, sysRandomSeed());
@@ -119,8 +120,19 @@ namespace tests_libOTe
         std::cout << "numFails / numTrials: " << numFails << " / " << numTrials << std::endl;
         std::cout << timer << '\n' << std::endl;
 
-        std::cout << "--------------Detail Time-------------\n" << std::endl;
+        std::cout << "------ Encode Detail Time-------------\n" << std::endl;
         std::cout << okvsTest.mTimer << std::endl;
+
+        timer.reset();
+        timer.setTimePoint("start");
+        for (u64 i = 0; i < numTrials; ++i){
+            okvsTest.setSeed(prng.get<block>());
+            // decode
+            okvsTest.decode(codeWords.get(), keys.get(), n, values.get(), numThreads);
+        }
+        timer.setTimePoint("end");
+        std::cout << "------------- Decode Time-------------\n" << std::endl;
+        std::cout << timer << '\n' << std::endl;
 
 #else
         throw UnitTestSkipped("CRYPTOTOOLS_RBOKVS_H is not defined.");

@@ -147,10 +147,11 @@ namespace osuCrypto{
         u8 hashOut[8];
         u64 out = 0;
 
-        blake3_hasher_init(&mHasher);
-        blake3_hasher_update(&mHasher, &mRPos, sizeof(mRPos));
-        blake3_hasher_update(&mHasher, &input, sizeof(input));
-        blake3_hasher_finalize(&mHasher, hashOut, 8);
+        blake3_hasher hasher;
+        blake3_hasher_init(&hasher);
+        blake3_hasher_update(&hasher, &mRPos, sizeof(mRPos));
+        blake3_hasher_update(&hasher, &input, sizeof(input));
+        blake3_hasher_finalize(&hasher, hashOut, 8);
 
         // todo: memory copy
         for (u64 i = 0; i < 8; ++i){
@@ -164,10 +165,12 @@ namespace osuCrypto{
         u64 wBlockBytes = divCeil(mW, 128) * 16;
         u64 wBytes = divCeil(mW, 8);
         u8 hashOut[wBlockBytes];
-        blake3_hasher_init(&mHasher);
-        blake3_hasher_update(&mHasher, &mRBand, sizeof(mRBand));
-        blake3_hasher_update(&mHasher, &input, sizeof(input));
-        blake3_hasher_finalize(&mHasher, hashOut, wBytes);
+
+        blake3_hasher hasher;
+        blake3_hasher_init(&hasher);
+        blake3_hasher_update(&hasher, &mRBand, sizeof(mRBand));
+        blake3_hasher_update(&hasher, &input, sizeof(input));
+        blake3_hasher_finalize(&hasher, hashOut, wBytes);
 
         hashOut[wBytes - 1] &= ~(0xFF >> (8 - mW % 8));
 
@@ -501,7 +504,7 @@ namespace osuCrypto{
         for (u64 i = 0; i < numThreads; ++i){
             decodeThrds[i] = std::thread([&, i](){
                 const u64 start = i * batchSize;
-                const u64 end = (i == numThreads - 1) ? size : (i + 1) * batchSize;
+                const u64 end = (i == numThreads - 1) ? size : start + batchSize;
                 for (u64 j = start; j < end; ++j){
                     output[j] = decode(codeWords, keys[j]);
                 }
