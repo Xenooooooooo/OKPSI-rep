@@ -4,7 +4,7 @@ This is the implementation code for **OKMPSI**: Efficient Scalable Multi-Party P
 
 ## Build
 
-For reviewing's anonymous purpose, the source code for this implementation can be downloaded through the link: https://anonymous.4open.science/r/OKPSI-rep-6984.
+For reviewing's anonymous purpose, the source code for this implementation can be downloaded through the link: https://anonymous.4open.science/r/OKPSI-rep-EF70/OKMPSI.zip
 
 The library can be built with networking support as
 
