@@ -1,26 +1,22 @@
-<<<<<<< HEAD
-# BAEC-PSI
+# OKMPSI
 
-## 2PSI
+This is the implementation code for **OKMPSI**: Efficient Scalable Multi-Party Private Set Intersection Using OKVS and Secret Sharing. The two party PSI part is from [VOLE-PSI: Fast OPRF and Circuit-PSI from Vector-OLE](https://eprint.iacr.org/2021/266) and [Blazing Fast PSI from Improved OKVS and Subfield VOLE](https://eprint.iacr.org/2022/320.pdf). We modify out construction using EC code from [Expand-Convolute Codes for Pseudorandom Correlation Generators from LPN](https://eprint.iacr.org/2023/882) and RB-OKVS from [Near-Optimal Oblivious Key-Value Stores for Efficient PSI, PSU and Volume-Hiding Multi-Maps](https://eprint.iacr.org/2023/903), and using BLAKE3 as hash function for better performance. This source is implemented based on [volePSI](https://github.com/Visa-Research/volepsi). For more details, please refer to this flie.
 
-本项目中的两方PSI框架来源于[VOLE-PSI: Fast OPRF and Circuit-PSI from Vector-OLE](https://eprint.iacr.org/2021/266)和[Blazing Fast PSI from Improved OKVS and Subfield VOLE](misc/blazingFastPSI.pdf)两篇论文，结合论文[Expand-Convolute Codes for Pseudorandom Correlation Generators from LPN](https://eprint.iacr.org/2023/882)中的Expand-Convolute码与[Near-Optimal Oblivious Key-Value Stores for Efficient PSI, PSU and Volume-Hiding Multi-Maps](https://eprint.iacr.org/2023/903)中的RB-OKVS进行改进，并使用了BLAKE3作为更高效的哈希函数。本项目在开源代码[volePSI](https://github.com/Visa-Research/volepsi)的基础上进行修改。关于技术细节和代码的修改细节，请查看[技术细节说明文档](misc/技术细节说明文档.md)。
+## Build
 
-### Build
-
-代码编译过程如下，依赖库在`out`文件夹下进行编译和安装，在Ubuntu 22.04，g++ 11.3.0和cmake 3.22.1下已通过测试。
+The library can be cloned and built with networking support as
 ```
 git clone https://github.com/lx-1234/BAEC-2psi
 cd BAEC-2psi
 python3 build.py -DVOLE_PSI_ENABLE_BOOST=ON
 ```
+After the compiling process, the executable `frontend` can be seen in `out/build/linux/frontend`.
 
-编译完成之后，可以在`out/build/linux/frontend`下看到可执行文件`frontend`。
+### Compile Options
+This repository includes most of the source codes from the dependencies, and there's no need for downloading fundamental dependencies except for `boost`. We use [libsodium](https://github.com/osu-crypto/libsodium) to realize our eclipse curve functions, not [relic](https://github.com/relic-toolkit/relic).
 
-##### 编译选项
+Options can be set as `-D NAME=VALUE`. For example, `-D VOLE_PSI_NO_SYSTEM_PATH=true`. See the output of the build for default/current value. Options include :
 
-本仓库已包含大部分依赖库的源代码，基础依赖库除了`boost`外无需再下载。特别地，椭圆曲线库默认使用[libsodium](https://github.com/osu-crypto/libsodium)而不是[relic](https://github.com/relic-toolkit/relic)。
-
-编译选项可以使用命令`-D NAME=VALUE`进行设置。例如，`-D VOLE_PSI_NO_SYSTEM_PATH=true`。通过build可以看到各个选项的默认值或者现在的值。一些其它可选的编译选项包括：
  * `VOLE_PSI_NO_SYSTEM_PATH`, values: `true,false`.  When looking for dependencies, do not look in the system install. Instead use `CMAKE_PREFIX_PATH` and the internal dependency management.  
 * `CMAKE_BUILD_TYPE`, values: `Debug,Release,RelWithDebInfo`. The build type. 
 * `FETCH_AUTO`, values: `true,false`. If true, dependencies will first be searched for and if not found then automatically downloaded.
@@ -31,53 +27,38 @@ python3 build.py -DVOLE_PSI_ENABLE_BOOST=ON
 * `VOLE_PSI_ENABLE_OPENSSL`, values: `true,false`. If true,the library will be built with OpenSSL networking support. This support is managed by libOTe. If enabled, it is the responsibility of the user to install openssl to the system or to a location contained in `CMAKE_PREFIX_PATH`.
 * `VOLE_PSI_ENABLE_RELIC`, values: `true,false`. If true, the library will be built relic for doing elliptic curve operations. This or sodium must be enabled. This support is managed by libOTe. 
 
+### Installing
 
-### 安装
-
-本项目和相关的依赖库可以使用以下命令进行安装。
-```bash
+The library and any fetched dependencies can be installed. 
+```shell
 python3 build.py --install
-# or
+```
+or 
+```shell
 python3 build.py --install=install/prefix/path
 ```
 
-### 链接
+### Running and Testing
 
-本项目可以通过cmake进行链接
-```cmake
-find_package(volepsi REQUIRED)
-target_link_libraries(myProject visa::volepsi)
-```
-为了确保cmake能够找到volepsi，你可以安装volepsi或者在编译时通过编译选项指定volepsi的路径`-D CMAKE_PREFIX_PATH=path/to/volepsi`，或者在cmake种使用`HINTS`提供volepsi的路径，即`find_package(volepsi HINTS path/to/volepsi)`。
+Using the instruction in the terminal to run and test the code:
 
-### 运行
-
-要运行项目代码，请使用以下命令
-```bash
-# in BAEC-2psi/out/build/linux/frontend
-# 查看所有可选参数
+````shell
+# in out/build/linux/frontend
+# to check all the available parameters
 ./frontend
-# 对各个模块正确性进行测试
+# to check correctness of each part of the code
 ./frontend -u
-# 本地运行2PSI，进行效率测试
-./frontend -perf -psi -v -nn 20 -nt 4
-# 通过csv文件读取输入，进行2PSI
-./frontend -in senderInput.txt -r 0 -nt 4 & ./frontend -in recverInput.txt -r 1 -nt 4
-```
+# to run OKMPSI locally, and test the performance (4 participants, 2^20 set size)
+./frontend -perf -mpsi -nu 4 -id 0 -nn 20 & ./frontend -perf -mpsi -nu 4 -id 1 -nn 20 & ./frontend -perf -mpsi -nu 4 -id 2 -nn 20 & ./frontend -perf -mpsi -nu 4 -id 3 -nn 20
+````
 
-要使用通信量更低的`RB-OKVS`，只需加上参数`-useRB`，如
-```bash
-# in BAEC-2psi/out/build/linux/frontend
-./frontend -perf -psi -v -nn 20 -nt 4 -useRB
-```
+ `-nn` is for set size,  and `-nu` is for the number of the participants.
 
-测试数据生成
-```bash
-# in BAEC-2psi
-python3 data_generation_in_csv.py
-```
-通过修改`data_number`和`intersection_card`可以分别修改测试集合大小和设定交集大小。
-=======
-# OKPSI-rep
-Repository for OKPSI
->>>>>>> e2d7f28ae214560ab01941fa69742af91bc08315
+To set limit on the network environment, we use `tc` command to set our LAN and WAN setting.
+
+1. LAN: 20 Gbit rate，0.02ms latency
+   `sudo tc qdisc add dev lo root netem rate 20gbit delay 0.02ms`
+2. WAN: 200 Mbit, 96ms latency
+   `sudo tc qdisc add dev lo root netem rate 200Mbit delay 96ms`
+3. to delete all the limits on the `lo`
+   `sudo tc qdisc del dev lo root`
