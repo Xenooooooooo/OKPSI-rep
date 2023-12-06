@@ -1,4 +1,3 @@
-//2023 lych
 #include "Mpsi.h"
 #include "volePSI/RsPsi.h"
 #include <array>

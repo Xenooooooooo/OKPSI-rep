@@ -4,9 +4,11 @@ This is the implementation code for **OKMPSI**: Efficient Scalable Multi-Party P
 
 ## Build
 
-The library can be cloned and built with networking support as
+For reviewing's anonymous purpose, the source code for this implementation can be downloaded through the link: https://anonymous.4open.science/r/OKPSI-rep-6984.
+
+The library can be built with networking support as
+
 ```
-git clone https://github.com/lx-1234/BAEC-2psi
 cd BAEC-2psi
 python3 build.py -DVOLE_PSI_ENABLE_BOOST=ON
 ```

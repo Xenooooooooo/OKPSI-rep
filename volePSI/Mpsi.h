@@ -1,4 +1,3 @@
-//2023 lych
 #pragma once
 
 #include "volePSI/Defines.h"
