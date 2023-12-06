@@ -8,8 +8,8 @@ For reviewing's anonymous purpose, the source code for this implementation can b
 
 The library can be built with networking support as
 
-```
-cd BAEC-2psi
+```shell
+cd OKMPSI
 python3 build.py -DVOLE_PSI_ENABLE_BOOST=ON
 ```
 After the compiling process, the executable `frontend` can be seen in `out/build/linux/frontend`.
