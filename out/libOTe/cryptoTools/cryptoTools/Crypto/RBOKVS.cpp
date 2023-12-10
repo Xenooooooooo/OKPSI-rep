@@ -1,6 +1,3 @@
-// Copyright 2023
-// Author: lx1234, lych, 70, Xeno
-
 #include <cryptoTools/Crypto/RBOKVS.h>
 #include <thread>
 

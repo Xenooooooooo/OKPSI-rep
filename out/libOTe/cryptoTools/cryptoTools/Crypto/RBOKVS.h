@@ -1,6 +1,3 @@
-// Copyright 2023
-// Author: lx1234, lych, 70, Xeno
-
 #pragma once
 
 #include <cryptoTools/Crypto/BLAKE3/blake3.h>
